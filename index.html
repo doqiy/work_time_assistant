@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>助手提示时间轴</title>
+  <link rel="stylesheet" href="/static/styles.css?v=20261023-base-1">
+  <script src="/static/audience.js?v=20261023-base-1" defer></script>
+  <script src="/static/app.js?v=20261023-base-1" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/assistant" aria-label="互动助手首页"><span class="brand-mark" aria-hidden="true">i<span>·</span></span><span>互动助手<span class="brand-divider">/</span><strong>提示记录</strong></span></a>
+    <span class="local-label"><span class="live-dot"></span>提示记录查看</span>
+  </header>
+  <main>
+    <section class="page-heading">
+      <div><p class="eyebrow">INTERACTION ASSISTANT</p><h1>助手提示时间轴</h1><p class="subtitle">按时间查看关联行为、提示分类与原始文案。</p></div>
+      <div class="source-control"><label for="source-select">数据来源</label><select id="source-select"><option value="real" selected>真实数据 · 频率时长适中 · 2026-10-20</option><option value="real_high">真实数据 · 高频主播 · 2026-10-20</option><option value="demo">模拟数据 · 效果演示</option></select></div>
+    </section>
+    <div id="dataset-note" class="dataset-note" role="status">正在读取数据…</div>
+    <div class="workspace">
+      <aside class="room-panel" aria-label="主播与直播间">
+        <div class="panel-heading"><h2>主播与直播间</h2><span id="group-count" class="counter">—</span></div>
+        <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="room-search" type="search" placeholder="搜索主播或直播间ID" aria-label="搜索主播或直播间ID"></label>
+        <div id="room-list" class="room-list" aria-label="直播间列表"></div>
+        <button id="more-rooms" class="more-rooms" hidden>显示更多直播间</button>
+        <p class="side-note">按主播与直播间归类<br>保留原始记录，不按文案合并</p>
+      </aside>
+      <section class="main-panel" aria-label="提示时间轴">
+        <div class="room-heading"><div><p class="section-kicker">当前直播间</p><h2 id="room-title">选择直播间</h2><p id="room-subtitle" class="muted">—</p></div><span id="source-badge" class="source-badge real">真实数据</span></div>
+        <div class="stats" aria-label="当前直播间记录统计">
+          <div><span>提示记录</span><strong id="stat-total">—</strong></div><div><span>发送成功</span><strong id="stat-success">—</strong></div><div><span>发送失败</span><strong id="stat-failure">—</strong></div><div><span>状态未知</span><strong id="stat-unknown">—</strong></div>
+        </div>
+        <div class="filters">
+          <div class="filter-row"><div class="status-tabs" role="group" aria-label="发送状态筛选"><button data-status="all" aria-pressed="true">全部</button><button data-status="success" aria-pressed="false">发送成功</button><button data-status="failure" aria-pressed="false">发送失败</button><button data-status="unknown" aria-pressed="false">状态未知</button></div><button id="reset-filters" class="text-button">重置筛选</button></div>
+          <div class="filters-grid">
+            <label class="filter-field" for="behavior-filter"><span class="filter-label" title="behavior_type">关联行为<code>behavior_type</code></span><select id="behavior-filter" aria-label="关联行为 behavior_type"><option value="all">全部行为</option></select></label>
+            <label class="filter-field" for="topic-filter"><span class="filter-label" title="is_topic">提示类别<code>is_topic</code></span><select id="topic-filter" aria-label="提示类别 is_topic"><option value="all">全部提示类别</option></select></label>
+            <label class="filter-field" for="output-filter"><span class="filter-label" title="output_type">输出形式<code>output_type</code></span><select id="output-filter" aria-label="输出形式 output_type"><option value="all">全部输出形式</option></select></label>
+            <label class="filter-field" for="strategy-filter"><span class="filter-label" title="from_strategy">付费场景 1<code>from_strategy</code></span><select id="strategy-filter" aria-label="付费场景 1 from_strategy"><option value="all">全部场景</option></select></label>
+            <label class="filter-field record-search" for="record-search"><span class="filter-label">观众 / 文案</span><input id="record-search" type="search" placeholder="观众编号、ID或文案" aria-label="搜索观众编号、ID或文案"></label>
+          </div>
+          <p class="filter-note">筛选项按《字段注释表》完整列出；数量为当前直播间全部记录，0 条仍可选择。“未提供”与枚举“未知”分开。</p>
+        </div>
+        <div class="timeline-toolbar"><div><strong id="visible-count" aria-live="polite">0 条记录</strong><span id="range-label" class="range-label"></span></div><button id="spacing-toggle" class="spacing-toggle" aria-pressed="true">间隔视图</button></div>
+        <div id="audience-focus" class="audience-focus" hidden>
+          <span id="audience-focus-label" role="status"></span>
+          <div class="audience-focus-actions">
+            <label class="audience-only-control"><input id="audience-only-toggle" type="checkbox" role="switch" aria-controls="timeline" aria-describedby="audience-view-note"><span>只看该观众</span></label>
+            <button id="clear-audience-focus" type="button">取消高亮</button>
+          </div>
+          <small id="audience-view-note">开启后只保留该观众，并计算其相邻记录间隔；上方筛选仍生效。</small>
+        </div>
+        <details class="field-guide">
+          <summary>字段怎么区分？<span>行为 ≠ 提示类别 ≠ 输出形式 ≠ 付费场景</span></summary>
+          <div class="field-guide-grid">
+            <div><strong>关联行为 <code>behavior_type</code></strong><p>本条记录关联的用户行为，如送礼、进场或看播档位。不表示该时间戳已被确认为行为发生时刻。</p></div>
+            <div><strong>话题类型 <code>topic_type</code></strong><p>1 偏好话题、2 付费话题。与 is_topic 并列读取，不由提示类别反推。</p></div>
+            <div><strong>提示类别 <code>is_topic</code></strong><p>偏好、付费、U / A / UA、热门、通用、才艺及 PK 等。才艺或 PK 同时可能属于偏好或付费话题。</p></div>
+            <div><strong>输出形式 <code>output_type</code></strong><p>0 话术、1 建议。按字段原值展示，不根据 suggestion_text 是否写有“建议”判断。</p></div>
+            <div><strong>付费场景 1 <code>from_strategy</code></strong><p>付费话题涉及的第一个场景，如心愿单未完成或成就馆未完成。组合时的场景 2 和各段话术在详情中查看；不能代表完整触发条件。</p></div>
+          </div>
+        </details>
+        <div id="topic-legend" class="legend" aria-label="提示类别颜色图例"></div>
+        <p class="audience-note">点击观众编号高亮，再点恢复；可开启“只看该观众”。编号始终按本房间完整记录首次出现排序，筛选前后不变。</p>
+        <p id="gap-scope" class="audience-note">间隔按当前筛选后相邻记录计算。</p>
+        <p id="interval-guide" class="interval-guide"><span>≤10秒 · 紧凑</span><span>10–60秒 · 逐渐拉开</span><span>1–5分钟 · 大间隔</span><span>≥5分钟 · 断轴</span><small>按时间分段拉开，非等比例</small></p>
+        <div id="room-warning" class="room-warning" hidden></div>
+        <div class="timeline-columns" aria-hidden="true"><span class="column-label">记录时间<code>send_timestamp</code></span><span></span><div class="column-fields"><span>观众<code>user_id</code></span><span>关联行为<code>behavior_type</code></span><span>提示类别<code>is_topic</code></span><span>输出<code>output_type</code></span><span>付费场景 1<code>from_strategy</code></span><span>文案<code>suggestion_text · topic_text</code></span><span>发送状态</span><span>详情</span></div></div>
+        <div id="timeline" class="timeline" aria-live="polite" aria-busy="false"></div>
+        <button id="load-more" class="load-more" hidden>显示更多记录</button>
+        <footer class="timeline-footer"><span>时间依据 send_timestamp · 北京时间</span><span>发送成功仅代表已发送，不代表已曝光</span></footer>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
